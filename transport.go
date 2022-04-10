@@ -2,7 +2,6 @@ package retryabletransport
 
 import (
 	"bytes"
-	"context"
 	"io"
 	"net/http"
 	"time"
@@ -11,15 +10,15 @@ import (
 type ShouldRetryFunc = func(response *http.Response, err error) bool
 
 type Transport struct {
-	rt          http.RoundTripper
-	shouldRetry ShouldRetryFunc
-	backoff     Backoff
+	rt            http.RoundTripper
+	shouldRetry   ShouldRetryFunc
+	backoffConfig BackoffConfig
 }
 
 // Ensure at compile time that RetryableTransport implements http.RoundTripper.
 var _ http.RoundTripper = &Transport{}
 
-func NewTransport(base http.RoundTripper, shouldRetry ShouldRetryFunc, backoff Backoff) *Transport {
+func NewTransport(base http.RoundTripper, shouldRetry ShouldRetryFunc, backoffConfig BackoffConfig) *Transport {
 	if base == nil {
 		base = http.DefaultTransport
 	}
@@ -29,14 +28,16 @@ func NewTransport(base http.RoundTripper, shouldRetry ShouldRetryFunc, backoff B
 	}
 
 	return &Transport{
-		rt:          base,
-		shouldRetry: shouldRetry,
-		backoff:     backoff,
+		rt:            base,
+		shouldRetry:   shouldRetry,
+		backoffConfig: backoffConfig,
 	}
 }
 
 // RoundTrip implements http.RoundTripper
 func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
+	ctx := req.Context()
+
 	// req.Bodyは一度読んだら終わりでリトライできないため、事前にリクエストボディをオンメモリにバッファする
 	// 効率的ではないが簡素な実装を選択した
 	buf := []byte{}
@@ -47,6 +48,9 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		}
 		buf = b
 	}
+
+	// このリクエストに対するリトライバックオフアルゴリズムを初期化
+	backoff := t.backoffConfig.New()
 
 	for {
 		req.Body = io.NopCloser(bytes.NewReader(buf))
@@ -66,19 +70,13 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 			res.Body.Close()
 		}
 
-		// backoff 設定に従って一定時間待機する
-		if err := t.wait(req.Context()); err != nil {
-			return nil, err
+		// バックオフ設定に従って一定時間待機する
+		wait := backoff.Pause()
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(wait):
+			// リトライへ
 		}
-	}
-}
-
-func (t *Transport) wait(ctx context.Context) error {
-	wait := t.backoff.Pause()
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-time.After(wait):
-		return nil
 	}
 }

@@ -82,12 +82,13 @@ func ExecRequest() {
 			return false
 		}
 	}
-	initialBackoff := 500 * time.Millisecond
-	maxBackoff := 32 * time.Second
-	backoffMultiplier := 1.5
-	backoff := retryabletransport.NewBackoff(initialBackoff, maxBackoff, backoffMultiplier)
+	backoffConfig := &retryabletransport.GaxBackoffConfig{
+		Initial:    500 * time.Millisecond,
+		Max:        32 * time.Second,
+		Multiplier: 1.5,
+	}
 
-	retryableTransport := retryabletransport.NewTransport(httpTransport, shouldRetry, backoff)
+	retryableTransport := retryabletransport.NewTransport(httpTransport, shouldRetry, backoffConfig)
 
 	client := http.Client{
 		Timeout:   5 * time.Second,

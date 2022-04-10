@@ -10,13 +10,23 @@ type Backoff interface {
 	Pause() time.Duration
 }
 
-// バックオフアルゴリズムは gax-go v2 の実装を利用する
-type backoff = gax.Backoff
+type BackoffConfig interface {
+	New() Backoff
+}
 
-func NewBackoff(initial, max time.Duration, multiplier float64) Backoff {
-	return &backoff{
-		Initial:    initial,
-		Max:        max,
-		Multiplier: multiplier,
+// gax-go v2 の実装を利用したバックオフアルゴリズムの実装
+type GaxBackoffConfig struct {
+	Initial    time.Duration
+	Max        time.Duration
+	Multiplier float64
+}
+
+var _ BackoffConfig = &GaxBackoffConfig{}
+
+func (c *GaxBackoffConfig) New() Backoff {
+	return &gax.Backoff{
+		Initial:    c.Initial,
+		Max:        c.Max,
+		Multiplier: c.Multiplier,
 	}
 }

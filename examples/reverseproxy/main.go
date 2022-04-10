@@ -88,12 +88,13 @@ func ReverseProxy() {
 			return false
 		}
 	}
-	initialBackoff := 500 * time.Millisecond
-	maxBackoff := 32 * time.Second
-	backoffMultiplier := 1.5
-	backoff := retryabletransport.NewBackoff(initialBackoff, maxBackoff, backoffMultiplier)
+	backoffConfig := &retryabletransport.GaxBackoffConfig{
+		Initial:    500 * time.Millisecond,
+		Max:        32 * time.Second,
+		Multiplier: 1.5,
+	}
 
-	retryableTransport := retryabletransport.NewTransport(httpTransport, shouldRetry, backoff)
+	retryableTransport := retryabletransport.NewTransport(httpTransport, shouldRetry, backoffConfig)
 
 	rp := httputil.NewSingleHostReverseProxy(u)
 	rp.Transport = retryableTransport
