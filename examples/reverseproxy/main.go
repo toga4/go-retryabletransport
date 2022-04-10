@@ -88,11 +88,10 @@ func ReverseProxy() {
 			return false
 		}
 	}
-	backoff := retryabletransport.Backoff{
-		Initial:    500 * time.Millisecond,
-		Max:        32 * time.Second,
-		Multiplier: 1.5,
-	}
+	initialBackoff := 500 * time.Millisecond
+	maxBackoff := 32 * time.Second
+	backoffMultiplier := 1.5
+	backoff := retryabletransport.NewBackoff(initialBackoff, maxBackoff, backoffMultiplier)
 
 	retryableTransport := retryabletransport.NewTransport(httpTransport, shouldRetry, backoff)
 

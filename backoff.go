@@ -6,22 +6,17 @@ import (
 	"github.com/googleapis/gax-go/v2"
 )
 
-type Backoff struct {
-	Initial    time.Duration
-	Max        time.Duration
-	Multiplier float64
-
-	// バックオフアルゴリズムは gax-go v2 の実装を利用する
-	backoff *gax.Backoff
+type Backoff interface {
+	Pause() time.Duration
 }
 
-func (b *Backoff) Pause() time.Duration {
-	if b.backoff == nil {
-		b.backoff = &gax.Backoff{
-			Initial:    b.Initial,
-			Max:        b.Max,
-			Multiplier: b.Multiplier,
-		}
+// バックオフアルゴリズムは gax-go v2 の実装を利用する
+type backoff = gax.Backoff
+
+func NewBackoff(initial, max time.Duration, multiplier float64) Backoff {
+	return &backoff{
+		Initial:    initial,
+		Max:        max,
+		Multiplier: multiplier,
 	}
-	return b.backoff.Pause()
 }

@@ -82,11 +82,10 @@ func ExecRequest() {
 			return false
 		}
 	}
-	backoff := retryabletransport.Backoff{
-		Initial:    1 * time.Second,
-		Max:        32 * time.Second,
-		Multiplier: 2.0,
-	}
+	initialBackoff := 500 * time.Millisecond
+	maxBackoff := 32 * time.Second
+	backoffMultiplier := 1.5
+	backoff := retryabletransport.NewBackoff(initialBackoff, maxBackoff, backoffMultiplier)
 
 	retryableTransport := retryabletransport.NewTransport(httpTransport, shouldRetry, backoff)
 
