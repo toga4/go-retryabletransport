@@ -3,6 +3,7 @@ package retryabletransport
 import (
 	"bytes"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"time"
 )
@@ -42,7 +43,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 	// 効率的ではないが簡素な実装を選択した
 	buf := []byte{}
 	if req.Body != nil {
-		b, err := io.ReadAll(req.Body)
+		b, err := ioutil.ReadAll(req.Body)
 		if err != nil {
 			return nil, err
 		}
@@ -53,7 +54,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 	backoff := t.backoffConfig.New()
 
 	for {
-		req.Body = io.NopCloser(bytes.NewReader(buf))
+		req.Body = ioutil.NopCloser(bytes.NewReader(buf))
 
 		// 子の Transport の RoundTrip を実行
 		res, err := t.rt.RoundTrip(req)
@@ -66,7 +67,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		if res != nil {
 			// リトライする、かつレスポンスがある場合はここで読み捨てる
 			// これは keep-alive されている TCP コネクションを再利用するために必要な処理である
-			_, _ = io.Copy(io.Discard, res.Body)
+			_, _ = io.Copy(ioutil.Discard, res.Body)
 			res.Body.Close()
 		}
 

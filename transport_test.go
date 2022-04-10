@@ -92,10 +92,10 @@ func TestRoundTrip(t *testing.T) {
 		go func() {
 			for {
 				conn, err := l.Accept()
-				if errors.Is(err, net.ErrClosed) {
-					return
-				}
 				if err != nil {
+					if strings.Contains(err.Error(), "use of closed network connection") {
+						return
+					}
 					panic(err)
 				}
 				data := make([]byte, 1)

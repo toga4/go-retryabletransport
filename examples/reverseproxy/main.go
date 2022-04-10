@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -124,7 +124,7 @@ func ExecRequest() {
 	}
 	defer resp.Body.Close()
 
-	b, err := io.ReadAll(resp.Body)
+	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Printf("Read err: %v", err)
 		return
