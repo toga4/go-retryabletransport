@@ -19,7 +19,7 @@ type Transport struct {
 // Ensure at compile time that RetryableTransport implements http.RoundTripper.
 var _ http.RoundTripper = &Transport{}
 
-func NewTransport(base http.RoundTripper, backoff Backoff, shouldRetry ShouldRetryFunc) *Transport {
+func NewTransport(base http.RoundTripper, shouldRetry ShouldRetryFunc, backoff Backoff) *Transport {
 	if base == nil {
 		base = http.DefaultTransport
 	}
@@ -30,8 +30,8 @@ func NewTransport(base http.RoundTripper, backoff Backoff, shouldRetry ShouldRet
 
 	return &Transport{
 		rt:          base,
-		backoff:     backoff,
 		shouldRetry: shouldRetry,
+		backoff:     backoff,
 	}
 }
 
