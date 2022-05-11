@@ -21,7 +21,8 @@ type GaxBackoffConfig struct {
 	Multiplier float64
 }
 
-var _ BackoffConfig = &GaxBackoffConfig{}
+// Ensure at compile time that GaxBackoffConfig implements BackoffConfig.
+var _ BackoffConfig = (*GaxBackoffConfig)(nil)
 
 func (c *GaxBackoffConfig) New() Backoff {
 	return &gax.Backoff{
