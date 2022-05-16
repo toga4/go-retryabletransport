@@ -26,6 +26,7 @@ type Transport struct {
 // Ensure at compile time that Transport implements http.RoundTripper.
 var _ http.RoundTripper = (*Transport)(nil)
 
+// New creates a http.RoundTripper with retry.
 func New(backoffPolicy BackoffPolicy, options ...TransportOption) *Transport {
 	shouldRetryError := defaultShouldRetryError
 	shouldRetryResponse := defaultShouldRetrResponse
@@ -54,8 +55,8 @@ func New(backoffPolicy BackoffPolicy, options ...TransportOption) *Transport {
 func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 	ctx := req.Context()
 
-	// req.Bodyは一度読んだら終わりでリトライできないため、事前にリクエストボディをオンメモリにバッファする
-	// 効率的ではないが簡素な実装を選択した
+	// Since the request body cannot be read more than once, read the entire request body in case a retry is necessary.
+	// A less efficient but simpler implementation.
 	buf := []byte{}
 	if req.Body != nil {
 		b, err := ioutil.ReadAll(req.Body)
@@ -87,8 +88,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		}
 
 		if res != nil {
-			// リトライする、かつレスポンスがある場合はここで読み捨てる
-			// これは keep-alive されている TCP コネクションを再利用するために必要な処理である
+			// Discards response body to reuse HTTP connections.
 			_, _ = io.Copy(ioutil.Discard, res.Body)
 			res.Body.Close()
 		}
