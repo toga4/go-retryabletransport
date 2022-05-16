@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/toga4/go-retryabletransport"
+	"github.com/toga4/go-retryabletransport/adapter/github.com/googleapis/gax-go.v2/gaxbackoff"
 )
 
 func Server() {
@@ -55,40 +56,33 @@ func Server() {
 }
 
 func ExecRequest() {
-
-	httpTransport := &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		DialContext: (&net.Dialer{
-			Timeout:   5 * time.Second,
-			KeepAlive: 20 * time.Second,
-		}).DialContext,
-		ForceAttemptHTTP2:     true,
-		MaxIdleConns:          100,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-	}
-	shouldRetry := func(res *http.Response, err error) bool {
-		switch {
-		case errors.Is(err, syscall.ECONNRESET):
-			log.Printf("Retry HTTP request! err: %v", err)
-			return true
-		case err != nil:
-			return false
-		case res.StatusCode == http.StatusBadGateway:
-			log.Printf("Retry HTTP request! status: %v", res.Status)
-			return true
-		default:
-			return false
-		}
-	}
-	backoffConfig := &retryabletransport.GaxBackoffConfig{
-		Initial:    500 * time.Millisecond,
-		Max:        32 * time.Second,
+	backoffPolicy := &gaxbackoff.BackoffPolicy{
+		Initial:    300 * time.Millisecond,
+		Max:        2 * time.Second,
 		Multiplier: 1.5,
 	}
 
-	retryableTransport := retryabletransport.NewTransport(httpTransport, shouldRetry, backoffConfig)
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.MaxIdleConnsPerHost = 20
+
+	retryableTransport := retryabletransport.New(
+		backoffPolicy,
+		retryabletransport.WithTransport(transport),
+		retryabletransport.WithShouldRetryError(func(r *http.Request, err error) bool {
+			if errors.Is(err, syscall.ECONNRESET) {
+				log.Printf("Retry HTTP request! err: %v", err)
+				return true
+			}
+			return false
+		}),
+		retryabletransport.WithShouldRetryResponse(func(r *http.Response) bool {
+			if r.StatusCode == http.StatusBadGateway {
+				log.Printf("Retry HTTP request! status: %v", r.Status)
+				return true
+			}
+			return false
+		}),
+	)
 
 	client := http.Client{
 		Timeout:   5 * time.Second,

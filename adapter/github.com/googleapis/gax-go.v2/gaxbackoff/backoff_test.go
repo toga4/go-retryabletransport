@@ -1,11 +1,9 @@
-package retryabletransport_test
+package gaxbackoff
 
 import (
 	"math"
 	"testing"
 	"time"
-
-	"github.com/toga4/go-retryabletransport"
 )
 
 func TestBackoff(t *testing.T) {
@@ -13,7 +11,7 @@ func TestBackoff(t *testing.T) {
 	maxBackoff := 5 * time.Second
 	backoffMultiplier := 2.0
 
-	backoffConfig := &retryabletransport.GaxBackoffConfig{
+	backoffConfig := &BackoffPolicy{
 		Initial:    initialBackoff,
 		Max:        maxBackoff,
 		Multiplier: backoffMultiplier,

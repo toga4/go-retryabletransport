@@ -2,32 +2,16 @@ package retryabletransport
 
 import (
 	"time"
-
-	"github.com/googleapis/gax-go/v2"
 )
 
+// Backoff is an interface that generates next backoff interval.
 type Backoff interface {
+	// Pause returns next backoff interval.
 	Pause() time.Duration
 }
 
-type BackoffConfig interface {
+// BackoffPolicy is an interface that generates new Backoff instance.
+type BackoffPolicy interface {
+	// New returns new Backoff instance.
 	New() Backoff
-}
-
-// gax-go v2 の実装を利用したバックオフアルゴリズムの実装
-type GaxBackoffConfig struct {
-	Initial    time.Duration
-	Max        time.Duration
-	Multiplier float64
-}
-
-// Ensure at compile time that GaxBackoffConfig implements BackoffConfig.
-var _ BackoffConfig = (*GaxBackoffConfig)(nil)
-
-func (c *GaxBackoffConfig) New() Backoff {
-	return &gax.Backoff{
-		Initial:    c.Initial,
-		Max:        c.Max,
-		Multiplier: c.Multiplier,
-	}
 }

@@ -1,4 +1,4 @@
-package retryabletransport_test
+package retryabletransport
 
 import (
 	"bytes"
@@ -15,30 +15,86 @@ import (
 	"syscall"
 	"testing"
 	"time"
-
-	"github.com/toga4/go-retryabletransport"
 )
+
+func TestNew(t *testing.T) {
+	t.Parallel()
+
+	t.Run("with_all_options", func(t *testing.T) {
+		backoffPolicy := &testBackoffPolicy{}
+		shouldRetryError := func(*http.Request, error) bool { return true }
+		shouldRetryResponse := func(*http.Response) bool { return true }
+		transport := http.DefaultTransport.(*http.Transport).Clone()
+
+		tr := New(
+			backoffPolicy,
+			WithShouldRetryError(shouldRetryError),
+			WithShouldRetryResponse(shouldRetryResponse),
+			WithTransport(transport),
+		)
+
+		if tr.backoffPolicy != backoffPolicy {
+			t.Errorf("expected backoffPolicy %v to be equal %v", tr.backoffPolicy, backoffPolicy)
+		}
+		if !tr.shouldRetryError(nil, nil) {
+			t.Error("expected shouldRetryError returns true but false")
+		}
+		if !tr.shouldRetryResponse(nil) {
+			t.Error("expected shouldRetryResponse returns true but false")
+		}
+		if tr.transport != transport {
+			t.Errorf("expected transport %v to be equal %v", tr.transport, transport)
+		}
+	})
+
+	t.Run("without_options", func(t *testing.T) {
+		backoffPolicy := &testBackoffPolicy{}
+
+		tr := New(backoffPolicy)
+
+		if tr.backoffPolicy != backoffPolicy {
+			t.Errorf("expected backoffPolicy %v to be equal %v", tr.backoffPolicy, backoffPolicy)
+		}
+		if tr.shouldRetryError(nil, nil) {
+			t.Error("expected shouldRetryError returns false but true")
+		}
+		if tr.shouldRetryResponse(nil) {
+			t.Error("expected shouldRetryResponse returns false but true")
+		}
+		if tr.transport != nil {
+			t.Errorf("expected tranport is nil but %v", tr.transport)
+		}
+	})
+}
+
+type testBackoffPolicy struct{}
+type testBackoff struct{}
+
+func (*testBackoffPolicy) New() Backoff {
+	return &testBackoff{}
+}
+
+func (*testBackoff) Pause() time.Duration {
+	return 90 * time.Millisecond
+}
 
 func TestRoundTrip(t *testing.T) {
 	t.Parallel()
 
-	base := http.DefaultTransport
+	backoffPolicy := &testBackoffPolicy{}
 
-	shouldRetry := func(response *http.Response, err error) bool {
-		if err != nil {
+	transport := New(
+		backoffPolicy,
+		WithShouldRetryError(func(r *http.Request, err error) bool {
 			return errors.Is(err, syscall.ECONNRESET)
-		}
-		return response.StatusCode == http.StatusBadGateway
-	}
-
-	backoffConfig := &retryabletransport.GaxBackoffConfig{
-		Initial:    25 * time.Millisecond,
-		Max:        100 * time.Millisecond,
-		Multiplier: 2,
-	}
+		}),
+		WithShouldRetryResponse(func(r *http.Response) bool {
+			return r.StatusCode == http.StatusBadGateway
+		}),
+	)
 
 	c := http.Client{
-		Transport: retryabletransport.NewTransport(base, shouldRetry, backoffConfig),
+		Transport: transport,
 		Timeout:   300 * time.Millisecond,
 	}
 
@@ -76,8 +132,8 @@ func TestRoundTrip(t *testing.T) {
 			t.Errorf("expected %v to be timeout error", err)
 		}
 
-		if atomic.LoadUint64(&calledCount) < 5 {
-			t.Errorf("expected %v to be greater than %v or equal", calledCount, 5)
+		if atomic.LoadUint64(&calledCount) == 2 {
+			t.Errorf("expected %v to be equal to %v", calledCount, 2)
 		}
 	})
 
@@ -122,8 +178,8 @@ func TestRoundTrip(t *testing.T) {
 			t.Errorf("expected %v to be timeout error", err)
 		}
 
-		if atomic.LoadUint64(&calledCount) < 5 {
-			t.Errorf("expected %v to be greater than %v or equal", calledCount, 5)
+		if atomic.LoadUint64(&calledCount) == 2 {
+			t.Errorf("expected %v to be equal to %v", calledCount, 2)
 		}
 	})
 

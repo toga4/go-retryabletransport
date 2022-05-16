@@ -14,7 +14,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/lestrrat-go/backoff/v2"
 	"github.com/toga4/go-retryabletransport"
+	"github.com/toga4/go-retryabletransport/adapter/github.com/lestrrat-go/backoff.v2/lestrratbackoff"
 )
 
 func Server() {
@@ -62,39 +64,33 @@ func ReverseProxy() {
 		log.Fatal(err)
 	}
 
-	httpTransport := &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		DialContext: (&net.Dialer{
-			Timeout:   5 * time.Second,
-			KeepAlive: 20 * time.Second,
-		}).DialContext,
-		ForceAttemptHTTP2:     true,
-		MaxIdleConns:          100,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-	}
-	shouldRetry := func(res *http.Response, err error) bool {
-		switch {
-		case errors.Is(err, syscall.ECONNRESET):
-			log.Printf("Retry HTTP request! err: %v", err)
-			return true
-		case err != nil:
-			return false
-		case res.StatusCode == http.StatusBadGateway:
-			log.Printf("Retry HTTP request! status: %v", res.Status)
-			return true
-		default:
-			return false
-		}
-	}
-	backoffConfig := &retryabletransport.GaxBackoffConfig{
-		Initial:    500 * time.Millisecond,
-		Max:        32 * time.Second,
-		Multiplier: 1.5,
-	}
+	backoffPolicy := lestrratbackoff.NewExponentialPolicy(
+		backoff.WithMinInterval(300*time.Millisecond),
+		backoff.WithMaxInterval(2*time.Second),
+		backoff.WithJitterFactor(0.05),
+	)
 
-	retryableTransport := retryabletransport.NewTransport(httpTransport, shouldRetry, backoffConfig)
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.MaxIdleConnsPerHost = 20
+
+	retryableTransport := retryabletransport.New(
+		backoffPolicy,
+		retryabletransport.WithTransport(transport),
+		retryabletransport.WithShouldRetryError(func(r *http.Request, err error) bool {
+			if errors.Is(err, syscall.ECONNRESET) {
+				log.Printf("Retry HTTP request! err: %v", err)
+				return true
+			}
+			return false
+		}),
+		retryabletransport.WithShouldRetryResponse(func(r *http.Response) bool {
+			if r.StatusCode == http.StatusBadGateway {
+				log.Printf("Retry HTTP request! status: %v", r.Status)
+				return true
+			}
+			return false
+		}),
+	)
 
 	rp := httputil.NewSingleHostReverseProxy(u)
 	rp.Transport = retryableTransport
