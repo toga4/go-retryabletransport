@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -15,7 +14,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/lestrrat-go/backoff/v2"
 	"github.com/toga4/go-retryabletransport"
+	"github.com/toga4/go-retryabletransport/adapter/github.com/lestrrat-go/backoff.v2/lestrratbackoff"
 )
 
 func Server() {
@@ -63,11 +64,11 @@ func ReverseProxy() {
 		log.Fatal(err)
 	}
 
-	backoffPolicy := &retryabletransport.GaxBackoffConfig{
-		Initial:    500 * time.Millisecond,
-		Max:        32 * time.Second,
-		Multiplier: 1.5,
-	}
+	backoffPolicy := lestrratbackoff.NewExponentialPolicy(
+		backoff.WithMinInterval(300*time.Millisecond),
+		backoff.WithMaxInterval(2*time.Second),
+		backoff.WithJitterFactor(0.05),
+	)
 
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	transport.MaxIdleConnsPerHost = 20
@@ -94,11 +95,7 @@ func ReverseProxy() {
 	rp := httputil.NewSingleHostReverseProxy(u)
 	rp.Transport = retryableTransport
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-		defer cancel()
-		rp.ServeHTTP(w, r.WithContext(ctx))
-	})
+	http.HandleFunc("/", rp.ServeHTTP)
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
