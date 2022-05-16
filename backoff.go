@@ -10,7 +10,7 @@ type Backoff interface {
 	Pause() time.Duration
 }
 
-type BackoffConfig interface {
+type BackoffPolicy interface {
 	New() Backoff
 }
 
@@ -22,7 +22,7 @@ type GaxBackoffConfig struct {
 }
 
 // Ensure at compile time that GaxBackoffConfig implements BackoffConfig.
-var _ BackoffConfig = (*GaxBackoffConfig)(nil)
+var _ BackoffPolicy = (*GaxBackoffConfig)(nil)
 
 func (c *GaxBackoffConfig) New() Backoff {
 	return &gax.Backoff{
