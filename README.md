@@ -1,4 +1,5 @@
 # go-retryabletransport
+[![Go Reference](https://pkg.go.dev/badge/github.com/toga4/go-retryabletransport.svg)](https://pkg.go.dev/github.com/toga4/go-retryabletransport) [![Test](https://github.com/toga4/go-retryabletransport/actions/workflows/ci.yaml/badge.svg)](https://github.com/toga4/go-retryabletransport/actions/workflows/ci.yaml)
 
 This library provides an implementation of http.RoundTripper for retrying HTTP requests with backoff. To configure backoff, you can use with 3rd-party libraries, or implement the Backoff and BackoffPolicy interfaces.
 
