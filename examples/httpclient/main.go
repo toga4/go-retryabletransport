@@ -12,9 +12,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/lestrrat-go/backoff/v2"
 	"github.com/toga4/go-retryabletransport"
-	"github.com/toga4/go-retryabletransport/adapter/github.com/lestrrat-go/backoff.v2/lestrratbackoff"
+	"github.com/toga4/go-retryabletransport/adapter/github.com/googleapis/gax-go.v2/gaxbackoff"
 )
 
 func Server() {
@@ -57,12 +56,11 @@ func Server() {
 }
 
 func ExecRequest() {
-
-	backoffPolicy := lestrratbackoff.NewExponentialPolicy(
-		backoff.WithMinInterval(300*time.Millisecond),
-		backoff.WithMaxInterval(2*time.Second),
-		backoff.WithJitterFactor(0.05),
-	)
+	backoffPolicy := &gaxbackoff.BackoffPolicy{
+		Initial:    300 * time.Millisecond,
+		Max:        2 * time.Second,
+		Multiplier: 1.5,
+	}
 
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	transport.MaxIdleConnsPerHost = 20
