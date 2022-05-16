@@ -1,7 +1,6 @@
 package lestrratbackoff
 
 import (
-	"math"
 	"testing"
 	"time"
 
@@ -18,12 +17,26 @@ func Test_ExponentialPolicy(t *testing.T) {
 
 	b := backoffPolicy.New()
 
-	for i := 0; i < 4; i++ {
-		interval := 100 * time.Millisecond * time.Duration(math.Pow(2, float64(i)))
+	val := b.Pause()
+
+	{
+		min := 90 * time.Millisecond
+		max := 110 * time.Millisecond
+
+		if val < min {
+			t.Errorf("expected %v to be greater than %v", val, min)
+		}
+		if val > max {
+			t.Errorf("expected %v to be less than %v", val, max)
+		}
+	}
+
+	for i := 0; i < 3; i++ {
+		interval := val * 2.0
 		min := time.Duration(float64(interval) * 0.9)
 		max := time.Duration(float64(interval) * 1.1)
 
-		val := b.Pause()
+		val = b.Pause()
 		if val < min {
 			t.Errorf("expected %v to be greater than %v", val, min)
 		}
