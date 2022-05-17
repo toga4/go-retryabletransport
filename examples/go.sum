@@ -190,6 +190,12 @@ github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5CcY=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
+github.com/toga4/go-retryabletransport v0.2.0 h1:w8BTGjs8p8SwmaByiLKVBrTXv1Wl885jsl4MwW5B6Q0=
+github.com/toga4/go-retryabletransport v0.2.0/go.mod h1:cCJi7T8dSv18h2aNy42hbFmedKINhpcaVEn44Rq6Kp8=
+github.com/toga4/go-retryabletransport/adapter/github.com/googleapis/gax-go.v2/gaxbackoff v0.2.1 h1:vdBlFbi0Cvla+EEtqZay5UxydbxllGF7urHdFKUJcig=
+github.com/toga4/go-retryabletransport/adapter/github.com/googleapis/gax-go.v2/gaxbackoff v0.2.1/go.mod h1:g2YtJDFSWDjxuh6UUZtawyUGEqNKui8OwQUjg3ZJ2is=
+github.com/toga4/go-retryabletransport/adapter/github.com/lestrrat-go/backoff.v2/lestrratbackoff v0.2.1 h1:2CL7aWK9vCrtTjtCVkJ7JEltErbZsTzBgKSbG7SdRj8=
+github.com/toga4/go-retryabletransport/adapter/github.com/lestrrat-go/backoff.v2/lestrratbackoff v0.2.1/go.mod h1:XxGm+NF53iQRMj5WKbCncGzg++rAdqhoQcDeBFNdIBc=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
