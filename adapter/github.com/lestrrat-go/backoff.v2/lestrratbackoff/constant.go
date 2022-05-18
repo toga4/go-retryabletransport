@@ -1,18 +1,20 @@
 package lestrratbackoff
 
 import (
+	"context"
+
 	"github.com/lestrrat-go/backoff/v2"
 	"github.com/toga4/go-retryabletransport"
 )
 
 type constantPolicy struct {
-	options []backoff.ConstantOption
+	policy backoff.Policy
 }
 
-func NewConstantPolicy(options ...backoff.ConstantOption) retryabletransport.BackoffPolicy {
-	return &constantPolicy{options}
+func NewConstantPolicy(options ...backoff.Option) retryabletransport.BackoffPolicy {
+	return &constantPolicy{backoff.Constant(options...)}
 }
 
-func (p *constantPolicy) New() retryabletransport.Backoff {
-	return &adapter{backoff.NewConstantInterval(p.options...)}
+func (p *constantPolicy) New(ctx context.Context) retryabletransport.Backoff {
+	return &adapter{p.policy.Start(ctx)}
 }

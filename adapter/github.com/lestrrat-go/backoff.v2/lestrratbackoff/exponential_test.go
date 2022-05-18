@@ -1,6 +1,7 @@
 package lestrratbackoff
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -8,53 +9,32 @@ import (
 )
 
 func Test_ExponentialPolicy(t *testing.T) {
+	ctx := context.Background()
+
 	backoffPolicy := NewExponentialPolicy(
-		backoff.WithMinInterval(100*time.Millisecond),
-		backoff.WithMaxInterval(1*time.Second),
-		backoff.WithJitterFactor(0.1),
+		backoff.WithMinInterval(20*time.Millisecond),
+		backoff.WithMaxInterval(50*time.Millisecond),
 		backoff.WithMultiplier(2.0),
+		backoff.WithMaxRetries(3),
 	)
 
-	b := backoffPolicy.New()
+	b := backoffPolicy.New(ctx)
 
-	val := b.Pause()
+	start := time.Now()
 
-	{
-		min := 90 * time.Millisecond
-		max := 110 * time.Millisecond
-
-		if val < min {
-			t.Errorf("expected %v to be greater than %v", val, min)
-		}
-		if val > max {
-			t.Errorf("expected %v to be less than %v", val, max)
-		}
+	count := 0
+	for b.Continue() {
+		count++
 	}
 
-	for i := 0; i < 3; i++ {
-		interval := val * 2.0
-		min := time.Duration(float64(interval) * 0.9)
-		max := time.Duration(float64(interval) * 1.1)
+	durationMillis := time.Now().Sub(start)
 
-		val = b.Pause()
-		if val < min {
-			t.Errorf("expected %v to be greater than %v", val, min)
-		}
-		if val > max {
-			t.Errorf("expected %v to be less than %v", val, max)
-		}
+	if count != 4 {
+		t.Errorf("expected count is equal to 4 but %v", count)
 	}
-
-	min := 900 * time.Millisecond
-	max := 1100 * time.Millisecond
-
-	for i := 0; i < 100_000; i++ {
-		val := b.Pause()
-		if val < min {
-			t.Errorf("expected %v to be greater than %v", val, min)
-		}
-		if val > max {
-			t.Errorf("expected %v to be less than %v", val, max)
-		}
+	min := (110 - 5) * time.Millisecond
+	max := (110 + 5) * time.Millisecond
+	if durationMillis < min || durationMillis > max {
+		t.Errorf("expected duration is between %v and %v but %v", min, max, durationMillis)
 	}
 }

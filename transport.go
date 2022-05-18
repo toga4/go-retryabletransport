@@ -5,7 +5,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"time"
 )
 
 type ShouldRetryErrorFunc func(*http.Request, error) bool
@@ -52,7 +51,7 @@ func New(backoffPolicy BackoffPolicy, options ...TransportOption) *Transport {
 }
 
 // RoundTrip implements http.RoundTripper
-func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
+func (t *Transport) RoundTrip(req *http.Request) (res *http.Response, err error) {
 	ctx := req.Context()
 
 	// Since the request body cannot be read more than once, read the entire request body in case a retry is necessary.
@@ -66,38 +65,41 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		buf = b
 	}
 
-	backoff := t.backoffPolicy.New()
+	backoff := t.backoffPolicy.New(ctx)
 
-	for {
+	for backoff.Continue() {
+
+		if res != nil {
+			// If this is the 2nd or subsequent run, and a response has been received on the previous call,
+			// discard and close the response body to reuse HTTP connections.
+			_, _ = io.Copy(ioutil.Discard, res.Body)
+			res.Body.Close()
+		}
+
 		req.Body = ioutil.NopCloser(bytes.NewReader(buf))
 
 		transport := t.transport
 		if transport == nil {
 			transport = http.DefaultTransport
 		}
-		res, err := transport.RoundTrip(req)
+		res, err = transport.RoundTrip(req)
 
 		if err != nil {
 			if !t.shouldRetryError(req, err) {
-				return nil, err
+				return
 			}
 		} else {
 			if !t.shouldRetryResponse(res) {
-				return res, nil
+				return
 			}
 		}
-
-		if res != nil {
-			// Discards response body to reuse HTTP connections.
-			_, _ = io.Copy(ioutil.Discard, res.Body)
-			res.Body.Close()
-		}
-
-		wait := backoff.Pause()
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		case <-time.After(wait):
-		}
 	}
+
+	// If context canceled or deadline exceeded while waiting to backoff timeout, return context error.
+	// Else returns the result of the last attempt.
+	// For example, when the maximum number of attempts has been reached.
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+	return
 }

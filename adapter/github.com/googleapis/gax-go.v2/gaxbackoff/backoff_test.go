@@ -1,39 +1,36 @@
 package gaxbackoff
 
 import (
-	"math"
+	"context"
+	"log"
 	"testing"
 	"time"
 )
 
 func TestBackoff(t *testing.T) {
-	initialBackoff := 250 * time.Millisecond
-	maxBackoff := 5 * time.Second
+	ctx := context.Background()
+
+	initialBackoff := 20 * time.Millisecond
+	maxBackoff := 50 * time.Millisecond
 	backoffMultiplier := 2.0
 
-	backoffConfig := &BackoffPolicy{
+	backoffPolicy := &BackoffPolicy{
 		Initial:    initialBackoff,
 		Max:        maxBackoff,
 		Multiplier: backoffMultiplier,
 	}
 
-	b := backoffConfig.New()
+	ctx, cancel := context.WithTimeout(ctx, 110*time.Millisecond)
+	defer cancel()
 
-	var val time.Duration
-
-	for i := 0; i < 5; i++ {
-		max := initialBackoff * time.Duration(math.Pow(2, float64(i)))
-
-		val = b.Pause()
-		if val > max {
-			t.Errorf("expected %v to be less than %v", val, max)
-		}
+	b := backoffPolicy.New(ctx)
+	count := 0
+	for b.Continue() {
+		log.Println(count)
+		count++
 	}
 
-	for i := 0; i < 100_000; i++ {
-		val = b.Pause()
-		if val > maxBackoff {
-			t.Errorf("expected %v to be less than %v", val, maxBackoff)
-		}
+	if count < 4 {
+		t.Errorf("expected count is greater than or equal to 4 but %v", count)
 	}
 }

@@ -2,6 +2,7 @@ package retryabletransport
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -18,7 +19,6 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	t.Parallel()
 
 	t.Run("with_all_options", func(t *testing.T) {
 		backoffPolicy := &testBackoffPolicy{}
@@ -68,18 +68,31 @@ func TestNew(t *testing.T) {
 }
 
 type testBackoffPolicy struct{}
-type testBackoff struct{}
-
-func (*testBackoffPolicy) New() Backoff {
-	return &testBackoff{}
+type testBackoff struct {
+	ctx   context.Context
+	first bool
 }
 
-func (*testBackoff) Pause() time.Duration {
-	return 90 * time.Millisecond
+func (*testBackoffPolicy) New(ctx context.Context) Backoff {
+	return &testBackoff{ctx, true}
+}
+
+func (b *testBackoff) Continue() bool {
+	if b.first {
+		b.first = false
+		return true
+	}
+
+	c := time.After(90 * time.Millisecond)
+	select {
+	case <-b.ctx.Done():
+		return false
+	case <-c:
+		return true
+	}
 }
 
 func TestRoundTrip(t *testing.T) {
-	t.Parallel()
 
 	backoffPolicy := &testBackoffPolicy{}
 
