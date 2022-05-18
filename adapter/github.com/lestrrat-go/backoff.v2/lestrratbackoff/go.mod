@@ -6,3 +6,5 @@ require (
 	github.com/lestrrat-go/backoff/v2 v2.0.8
 	github.com/toga4/go-retryabletransport v0.2.0
 )
+
+replace github.com/toga4/go-retryabletransport => ../../../../..

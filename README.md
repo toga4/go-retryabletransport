@@ -55,4 +55,4 @@ Some implementation for using 3rd-party backoff libraries are provided. See [ada
 
 ## Caveats
 
-- No limit on the number of attempts or the length of retries. Instead, use `http.Client.Timeout` or `context.WithTimeout` to limit the length of retries.
+- No limit on the length of retries. Instead, use `http.Client.Timeout` or `context.WithTimeout` to limit the length of retries.

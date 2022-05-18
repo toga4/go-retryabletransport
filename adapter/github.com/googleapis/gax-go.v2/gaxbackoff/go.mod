@@ -6,3 +6,5 @@ require (
 	github.com/googleapis/gax-go/v2 v2.4.0
 	github.com/toga4/go-retryabletransport v0.2.0
 )
+
+replace github.com/toga4/go-retryabletransport => ../../../../..

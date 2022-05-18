@@ -1,15 +1,13 @@
 package lestrratbackoff
 
 import (
-	"time"
-
 	"github.com/lestrrat-go/backoff/v2"
 )
 
 type adapter struct {
-	backoff backoff.IntervalGenerator
+	controller backoff.Controller
 }
 
-func (a *adapter) Pause() time.Duration {
-	return a.backoff.Next()
+func (a *adapter) Continue() bool {
+	return backoff.Continue(a.controller)
 }
