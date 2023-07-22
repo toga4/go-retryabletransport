@@ -21,9 +21,3 @@ require (
 	google.golang.org/grpc v1.46.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 )
-
-replace (
-	github.com/toga4/go-retryabletransport => ../
-	github.com/toga4/go-retryabletransport/adapter/github.com/googleapis/gax-go.v2/gaxbackoff => ../adapter/github.com/googleapis/gax-go.v2/gaxbackoff
-	github.com/toga4/go-retryabletransport/adapter/github.com/lestrrat-go/backoff.v2/lestrratbackoff => ../adapter/github.com/lestrrat-go/backoff.v2/lestrratbackoff
-)
