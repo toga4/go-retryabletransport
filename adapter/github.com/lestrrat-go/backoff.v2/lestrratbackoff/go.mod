@@ -7,6 +7,7 @@ require (
 	github.com/toga4/go-retryabletransport v0.3.0
 )
 
-require github.com/lestrrat-go/option v1.0.0 // indirect
-
-replace github.com/toga4/go-retryabletransport => ../../../../..
+require (
+	github.com/lestrrat-go/option v1.0.1 // indirect
+	github.com/stretchr/testify v1.8.3 // indirect
+)
