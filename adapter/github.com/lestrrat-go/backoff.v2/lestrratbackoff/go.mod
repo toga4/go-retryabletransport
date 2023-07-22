@@ -8,6 +8,6 @@ require (
 )
 
 require (
-	github.com/lestrrat-go/option v1.0.0 // indirect
-	github.com/stretchr/testify v1.7.0 // indirect
+	github.com/lestrrat-go/option v1.0.1 // indirect
+	github.com/stretchr/testify v1.8.3 // indirect
 )
