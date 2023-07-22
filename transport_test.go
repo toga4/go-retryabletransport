@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -122,7 +121,7 @@ func TestRoundTrip(t *testing.T) {
 				t.Errorf("expected %v to be equal %v", r.RequestURI, "/foo/bar")
 			}
 
-			b, err := ioutil.ReadAll(r.Body)
+			b, err := io.ReadAll(r.Body)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -207,7 +206,7 @@ func TestRoundTrip(t *testing.T) {
 				t.Errorf("expected %v to be equal %v", r.RequestURI, "/foo/bar")
 			}
 
-			b, err := ioutil.ReadAll(r.Body)
+			b, err := io.ReadAll(r.Body)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -238,7 +237,7 @@ func TestRoundTrip(t *testing.T) {
 		}
 		defer res.Body.Close()
 
-		b, err := ioutil.ReadAll(res.Body)
+		b, err := io.ReadAll(res.Body)
 		if err != nil {
 			t.Fatal(err)
 		}

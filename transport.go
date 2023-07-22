@@ -3,7 +3,6 @@ package retryabletransport
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"net/http"
 )
 
@@ -58,7 +57,7 @@ func (t *Transport) RoundTrip(req *http.Request) (res *http.Response, err error)
 	// A less efficient but simpler implementation.
 	buf := []byte{}
 	if req.Body != nil {
-		b, err := ioutil.ReadAll(req.Body)
+		b, err := io.ReadAll(req.Body)
 		if err != nil {
 			return nil, err
 		}
@@ -72,11 +71,11 @@ func (t *Transport) RoundTrip(req *http.Request) (res *http.Response, err error)
 		if res != nil {
 			// If this is the 2nd or subsequent run, and a response has been received on the previous call,
 			// discard and close the response body to reuse HTTP connections.
-			_, _ = io.Copy(ioutil.Discard, res.Body)
+			_, _ = io.Copy(io.Discard, res.Body)
 			res.Body.Close()
 		}
 
-		req.Body = ioutil.NopCloser(bytes.NewReader(buf))
+		req.Body = io.NopCloser(bytes.NewReader(buf))
 
 		transport := t.transport
 		if transport == nil {

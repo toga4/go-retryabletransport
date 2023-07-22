@@ -27,14 +27,14 @@ func Test_ExponentialPolicy(t *testing.T) {
 		count++
 	}
 
-	durationMillis := time.Now().Sub(start)
+	duration := time.Since(start)
 
 	if count != 4 {
 		t.Errorf("expected count is equal to 4 but %v", count)
 	}
 	min := (110 - 5) * time.Millisecond
 	max := (110 + 5) * time.Millisecond
-	if durationMillis < min || durationMillis > max {
-		t.Errorf("expected duration is between %v and %v but %v", min, max, durationMillis)
+	if duration < min || duration > max {
+		t.Errorf("expected duration is between %v and %v but %v", min, max, duration)
 	}
 }

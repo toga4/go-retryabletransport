@@ -1,3 +1,3 @@
 module github.com/toga4/go-retryabletransport
 
-go 1.16
+go 1.20

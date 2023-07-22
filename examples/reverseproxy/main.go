@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -46,7 +46,7 @@ func Server() {
 
 	// and then, response
 	i := 0
-	http.Serve(listener, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	_ = http.Serve(listener, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if i == 0 {
 			// 502 BadGateway
 			i++
@@ -120,7 +120,7 @@ func ExecRequest() {
 	}
 	defer resp.Body.Close()
 
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Printf("Read err: %v", err)
 		return
