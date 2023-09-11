@@ -14,7 +14,7 @@ jobs:
           - adapter/github.com/googleapis/gax-go.v2/gaxbackoff
           - adapter/github.com/lestrrat-go/backoff.v2/lestrratbackoff
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
         with:
           go-version-file: ${{ matrix.module }}/go.mod
@@ -31,7 +31,7 @@ jobs:
           - adapter/github.com/googleapis/gax-go.v2/gaxbackoff
           - adapter/github.com/lestrrat-go/backoff.v2/lestrratbackoff
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
         with:
           go-version-file: ${{ matrix.module }}/go.mod
