@@ -15,7 +15,7 @@ jobs:
           - adapter/github.com/lestrrat-go/backoff.v2/lestrratbackoff
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: ${{ matrix.module }}/go.mod
       - name: Run tests
@@ -32,7 +32,7 @@ jobs:
           - adapter/github.com/lestrrat-go/backoff.v2/lestrratbackoff
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: ${{ matrix.module }}/go.mod
           cache: false
