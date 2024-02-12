@@ -36,6 +36,6 @@ jobs:
         with:
           go-version-file: ${{ matrix.module }}/go.mod
           cache: false
-      - uses: golangci/golangci-lint-action@v3
+      - uses: golangci/golangci-lint-action@v4
         with:
           working-directory: ${{ matrix.module }}
