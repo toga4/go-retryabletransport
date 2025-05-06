@@ -154,7 +154,9 @@ func TestRoundTrip(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		defer l.Close()
+		defer func() {
+			_ = l.Close()
+		}()
 
 		calledCount := uint64(0)
 		go func() {
@@ -235,7 +237,9 @@ func TestRoundTrip(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		defer res.Body.Close()
+		defer func() {
+			_ = res.Body.Close()
+		}()
 
 		b, err := io.ReadAll(res.Body)
 		if err != nil {
