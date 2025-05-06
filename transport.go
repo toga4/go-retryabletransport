@@ -72,7 +72,7 @@ func (t *Transport) RoundTrip(req *http.Request) (res *http.Response, err error)
 			// If this is the 2nd or subsequent run, and a response has been received on the previous call,
 			// discard and close the response body to reuse HTTP connections.
 			_, _ = io.Copy(io.Discard, res.Body)
-			res.Body.Close()
+			_ = res.Body.Close()
 		}
 
 		req.Body = io.NopCloser(bytes.NewReader(buf))
