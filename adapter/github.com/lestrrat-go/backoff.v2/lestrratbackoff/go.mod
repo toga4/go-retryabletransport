@@ -1,6 +1,8 @@
 module github.com/toga4/go-retryabletransport/adapter/github.com/lestrrat-go/backoff.v2/lestrratbackoff
 
-go 1.20
+go 1.23
+
+toolchain go1.24.3
 
 require (
 	github.com/lestrrat-go/backoff/v2 v2.0.8
@@ -9,5 +11,5 @@ require (
 
 require (
 	github.com/lestrrat-go/option v1.0.1 // indirect
-	github.com/stretchr/testify v1.8.3 // indirect
+	github.com/stretchr/testify v1.10.0 // indirect
 )
