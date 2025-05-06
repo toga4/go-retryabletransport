@@ -1,7 +1,9 @@
 version: 2
 updates:
   - package-ecosystem: "gomod"
-    directory: "/"
+    directories:
+      - "/"
+      - "/adapter/**"
     schedule:
       interval: "weekly"
     groups:
