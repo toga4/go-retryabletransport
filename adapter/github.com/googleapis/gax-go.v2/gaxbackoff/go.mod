@@ -3,7 +3,7 @@ module github.com/toga4/go-retryabletransport/adapter/github.com/googleapis/gax-
 go 1.25.0
 
 require (
-	github.com/googleapis/gax-go/v2 v2.24.0
+	github.com/googleapis/gax-go/v2 v2.24.1
 	github.com/toga4/go-retryabletransport v0.3.0
 )
 
@@ -20,6 +20,6 @@ require (
 	golang.org/x/text v0.40.0 // indirect
 	google.golang.org/api v0.288.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260715232425-e75dac1f907d // indirect
-	google.golang.org/grpc v1.82.1 // indirect
+	google.golang.org/grpc v1.83.1 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
