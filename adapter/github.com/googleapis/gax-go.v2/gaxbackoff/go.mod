@@ -3,7 +3,7 @@ module github.com/toga4/go-retryabletransport/adapter/github.com/googleapis/gax-
 go 1.26.0
 
 require (
-	github.com/googleapis/gax-go/v2 v2.26.0
+	github.com/googleapis/gax-go/v2 v2.26.2
 	github.com/toga4/go-retryabletransport v0.3.0
 )
 
